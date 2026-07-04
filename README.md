@@ -4,14 +4,14 @@ A mobile-first, cinematic digital wedding invitation built with **Next.js (App R
 
 ## Features
 
-- Cinematic hero with watercolor arch, parallax + ken-burns, animated S\|L monogram
+- Cinematic hero with watercolor arch, parallax + ken-burns, animated G|A monogram
 - Live countdown to the wedding date
 - Floating gold petals + butterflies ambient layer
 - Optional background music toggle
 - Families section, scroll-revealed
 - "Our Story" polaroid carousel
 - Reception schedule timeline
-- Wedding Church & Reception detail cards with **Get Directions** map links
+- Wedding Temple & Reception detail cards with **Get Directions** map links
 - RSVP form with Joyfully Accept / Regretfully Decline + confetti celebration
 - Smooth scroll-reveal animations throughout, reduced-motion friendly
 
