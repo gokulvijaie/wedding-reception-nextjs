@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run dev)",
+      "PowerShell($deadline = \\(Get-Date\\).AddSeconds\\(60\\); do { try { $r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 3; break } catch { Start-Sleep -Milliseconds 1500 } } while \\(\\(Get-Date\\) -lt $deadline\\); if \\($r\\) { \"up: $\\($r.StatusCode\\)\" } else { Get-Content \"C:\\\\Users\\\\gokul\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gokul-Downloads-gokul-invitation\\\\2989bdc0-f528-4697-8406-af5fd25e5697\\\\tasks\\\\bo4g39j7n.output\" -Tail 20 })",
+      "PowerShell($edge = \"C:\\\\Program Files \\(x86\\)\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe\"; if \\(-not \\(Test-Path $edge\\)\\) { $edge = \"C:\\\\Program Files\\\\Microsoft\\\\Edge\\\\Application\\\\msedge.exe\" }; $sp = \"C:\\\\Users\\\\gokul\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gokul-Downloads-gokul-invitation\\\\2989bdc0-f528-4697-8406-af5fd25e5697\\\\scratchpad\"; & $edge --headless --disable-gpu --window-size=1280,900 --virtual-time-budget=12000 --screenshot=\"$sp\\\\hero.png\" \"http://localhost:3001\"; Start-Sleep -Seconds 2; \\(Get-Item \"$sp\\\\hero.png\"\\).Length)",
+      "PowerShell($sp = \"C:\\\\Users\\\\gokul\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-gokul-Downloads-gokul-invitation\\\\2989bdc0-f528-4697-8406-af5fd25e5697\\\\scratchpad\"; if \\(Test-Path \"$sp\\\\hero.png\"\\) { \\(Get-Item \"$sp\\\\hero.png\"\\).Length } else { \"missing\" })"
+    ]
+  }
+}

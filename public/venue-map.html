@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Venue map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    #map { background: #1a2c5b; font-family: Georgia, serif; }
+    .leaflet-popup-content { font-size: 14px; color: #1a2c5b; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var lat = 10.2431116, lng = 76.2645739;
+    var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 17);
+
+    // Satellite imagery
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 19, attribution: 'Imagery &copy; Esri' }
+    ).addTo(map);
+
+    // Roads + place-name labels on top (hybrid satellite look)
+    L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 19 }
+    ).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+      .bindPopup('St. Stanislaus Parish Hall, Mala Town')
+      .openPopup();
+  </script>
+</body>
+</html>
