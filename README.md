@@ -1,4 +1,4 @@
-# Suraj weds Libina — Cinematic Wedding Reception Invitation
+# Gokul weds Amritha — Cinematic Wedding Reception Invitation
 
 A mobile-first, cinematic digital wedding invitation built with **Next.js (App Router) + Tailwind CSS v4**.
 
