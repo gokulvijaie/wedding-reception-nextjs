@@ -31,7 +31,18 @@ export default function RevealObserver() {
     );
 
     els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
+
+    // Safety net (mainly for iOS Safari): if the observer ever fails to fire
+    // for an element that's on screen, force everything visible after a few
+    // seconds so no content can stay stuck at opacity:0.
+    const failsafe = window.setTimeout(() => {
+      els.forEach((el) => el.classList.add("is-visible"));
+    }, 3500);
+
+    return () => {
+      window.clearTimeout(failsafe);
+      io.disconnect();
+    };
   }, []);
 
   return null;

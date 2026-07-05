@@ -119,8 +119,6 @@ export const config = {
       { image: "/assets/engagement/02.webp" as string | null, caption: "Surrounded by love" },
       { image: "/assets/engagement/03.webp" as string | null, caption: "Hearts full of joy" },
       { image: "/assets/engagement/04.webp" as string | null, caption: "With our families" },
-      { image: "/assets/engagement/05.webp" as string | null, caption: "Blessed & grateful" },
-      { image: "/assets/engagement/06.webp" as string | null, caption: "Our favourite people" },
       { image: "/assets/engagement/07.webp" as string | null, caption: "Moments to treasure" },
       { image: "/assets/engagement/08.webp" as string | null, caption: "Forever begins" },
     ],
@@ -154,7 +152,6 @@ export const config = {
     venue: "St. Stanislaus Parish Hall",
     address: "Mala Town, Kerala",
     note: "Celebrate this new chapter with us.",
-    verse: "Therefore what God has joined together, let no one separate.",
     mapUrl: "https://maps.app.goo.gl/YiehE8HDWjAeuMhm8",
     // Self-hosted satellite map (Esri World Imagery + place labels via Leaflet)
     // pinned to the venue's exact coordinates (10.2431116, 76.2645739). Keyless

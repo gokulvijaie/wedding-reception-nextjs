@@ -32,15 +32,42 @@ const alexBrush = Alex_Brush({
 });
 
 const title = `${config.couple.groom} weds ${config.couple.bride}`;
+const fullTitle = `${title} · Wedding Reception Invitation`;
+const description = `Join us as we celebrate the wedding reception of ${config.couple.groom} & ${config.couple.bride} — ${config.hero.dateLabel}, ${config.hero.location}. ${config.hero.tagline}`;
+
+// Absolute base URL is required so WhatsApp / Messenger can fetch the preview
+// image. Set NEXT_PUBLIC_SITE_URL to your real domain before going live.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokul-invitation.example";
 
 export const metadata: Metadata = {
-  title: `${title} · A Wedding Reception Invitation`,
-  description: `${config.hero.line1} ${config.hero.line2} Join us as we celebrate the wedding of ${config.couple.groom} & ${config.couple.bride} — ${config.hero.dateLabel}, ${config.hero.location}.`,
+  metadataBase: new URL(siteUrl),
+  title: fullTitle,
+  description,
+  applicationName: title,
   openGraph: {
-    title,
-    description: `${config.hero.tagline} — ${config.hero.dateLabel}`,
     type: "website",
+    url: "/",
+    siteName: title,
+    title: fullTitle,
+    description,
+    locale: "en_IN",
+    images: [
+      {
+        url: "/og-image.jpg", // resolved to an absolute URL via metadataBase
+        width: 1200,
+        height: 630,
+        alt: `${config.couple.groom} & ${config.couple.bride} — Wedding Reception`,
+        type: "image/jpeg",
+      },
+    ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: fullTitle,
+    description,
+    images: ["/og-image.jpg"],
+  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
