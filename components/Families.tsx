@@ -34,6 +34,26 @@ function FamilyCard({
       <p className="mt-1 font-display text-lg italic text-[var(--navy-muted)]">
         {side.siblings.join(" · ")}
       </p>
+
+      {side.address?.length ? (
+        <>
+          <div className="mx-auto my-5 flex w-1/3 items-center gap-2">
+            <span className="gold-line flex-1" />
+            <span className="text-[var(--gold)]">&#10047;&#65038;</span>
+            <span className="gold-line flex-1" />
+          </div>
+          <p className="font-caps text-[0.6rem] tracking-[0.3em] text-[var(--gold-deep)]">
+            ADDRESS
+          </p>
+          <address className="mt-1 font-display text-base not-italic leading-relaxed text-[var(--navy-deep)]">
+            {side.address.map((line, i) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
+          </address>
+        </>
+      ) : null}
     </div>
   );
 }

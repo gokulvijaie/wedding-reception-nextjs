@@ -11,12 +11,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
  * skipped entirely when the user prefers reduced motion.
  */
 export default function Atmosphere() {
+  // Only gate on mount (to avoid an SSR hydration mismatch). We intentionally do
+  // NOT skip on prefers-reduced-motion: iOS reports reduced-motion whenever Low
+  // Power Mode is on, which was silently disabling the whole ambient layer on
+  // many iPhones. These are decorative, WAAPI-driven, and pointer-events-none.
   const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (!reduce) setEnabled(true);
-  }, []);
+  useEffect(() => setEnabled(true), []);
 
   const petals = useMemo(
     () =>
@@ -74,21 +74,24 @@ function Petal(p: {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const travel = window.innerHeight + 140;
-    const anim = el.animate(
-      [
-        { transform: "translate(0px, -80px) rotate(0deg)", opacity: 0 },
-        { opacity: p.opacity, offset: 0.1 },
-        { opacity: p.opacity, offset: 0.9 },
-        { transform: `translate(${p.drift}px, ${travel}px) rotate(360deg)`, opacity: 0 },
-      ],
-      {
-        duration: p.duration * 1000,
-        delay: p.delay * 1000, // negative → starts mid-flight
-        iterations: Infinity,
-        easing: "linear",
-      }
-    );
+    const startY = -80;
+    const endY = window.innerHeight + 140;
+    // Every keyframe carries a transform (some WebKit versions mis-interpolate
+    // transform when only a subset of keyframes define it).
+    const at = (t: number) => ({
+      offset: t,
+      transform: `translate(${(p.drift * t).toFixed(1)}px, ${(
+        startY +
+        (endY - startY) * t
+      ).toFixed(1)}px) rotate(${Math.round(360 * t)}deg)`,
+      opacity: t === 0 || t === 1 ? 0 : p.opacity,
+    });
+    const anim = el.animate([at(0), at(0.12), at(0.88), at(1)], {
+      duration: p.duration * 1000,
+      delay: p.delay * 1000, // negative → starts mid-flight
+      iterations: Infinity,
+      easing: "linear",
+    });
     return () => anim.cancel();
   }, [p.duration, p.delay, p.drift, p.opacity]);
 
@@ -125,21 +128,21 @@ function FlyingButterfly(b: {
     const h = window.innerHeight;
     const startX = b.dir === "lr" ? -70 : w + 70;
     const endX = b.dir === "lr" ? w + 70 : -70;
+    const endY = -h * 0.08;
+    const at = (t: number) => ({
+      offset: t,
+      transform: `translate(${(startX + (endX - startX) * t).toFixed(1)}px, ${(
+        endY * t
+      ).toFixed(1)}px)`,
+      opacity: t === 0 || t === 1 ? 0 : 0.8,
+    });
 
-    const fly = flyRef.current?.animate(
-      [
-        { transform: `translate(${startX}px, 0px)`, opacity: 0 },
-        { opacity: 0.8, offset: 0.08 },
-        { opacity: 0.8, offset: 0.92 },
-        { transform: `translate(${endX}px, ${-h * 0.08}px)`, opacity: 0 },
-      ],
-      {
-        duration: b.duration * 1000,
-        delay: b.delay * 1000,
-        iterations: Infinity,
-        easing: "linear",
-      }
-    );
+    const fly = flyRef.current?.animate([at(0), at(0.08), at(0.92), at(1)], {
+      duration: b.duration * 1000,
+      delay: b.delay * 1000,
+      iterations: Infinity,
+      easing: "linear",
+    });
 
     const flutter = flutRef.current?.animate(
       [{ transform: "scaleX(1)" }, { transform: "scaleX(0.4)" }, { transform: "scaleX(1)" }],
