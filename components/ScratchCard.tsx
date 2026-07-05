@@ -149,7 +149,7 @@ export default function ScratchCard() {
         total++;
         if (data[i] === 0) clear++;
       }
-      if (clear / total > 0.5) reveal();
+      if (clear / total > 0.3) reveal();
     } catch {
       /* getImageData can throw if tainted — ignore */
     }
@@ -185,29 +185,31 @@ export default function ScratchCard() {
 
   return (
     <div className="w-full">
-        {/* scratch card */}
+        {/* scratch card — height driven by the revealed content so nothing
+            gets cramped when the venue text wraps */}
         <div
           ref={wrapRef}
-          className="relative mx-auto aspect-[4/3] w-full overflow-hidden rounded-2xl border border-[var(--gold)]/40 shadow-[0_20px_60px_-25px_rgba(26,44,91,0.6)]"
+          className="relative mx-auto w-full overflow-hidden rounded-2xl border border-[var(--gold)]/40 shadow-[0_20px_60px_-25px_rgba(26,44,91,0.6)]"
         >
-          {/* revealed content underneath */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[var(--ivory-soft)] via-[#fbf3e3] to-[#f3e7cd] px-5 text-center">
-            <p className="font-caps text-xs tracking-[0.3em] text-[var(--gold-deep)] sm:text-sm">
+          {/* revealed content underneath (in normal flow → sets the height) */}
+          <div className="flex min-h-[15rem] flex-col items-center justify-center bg-gradient-to-br from-[var(--ivory-soft)] via-[#fbf3e3] to-[#f3e7cd] px-6 py-10 text-center">
+            <p className="font-caps text-xs tracking-[0.32em] text-[var(--gold-deep)] sm:text-sm">
               {scratch.revealLabel}
             </p>
-            <div className="mt-3 mb-3 flex items-center gap-2">
-              <span className="gold-line w-10" />
-              <span className="text-[var(--gold)]">&#10047;</span>
-              <span className="gold-line w-10" />
+            <div className="my-4 flex items-center gap-2.5">
+              <span className="gold-line w-12" />
+              <span className="text-[var(--gold)]">&#10047;&#65038;</span>
+              <span className="gold-line w-12" />
             </div>
-            <p className="font-display text-2xl font-medium leading-snug text-[var(--navy-deep)] sm:text-3xl">
+            <p className="font-display text-3xl font-semibold leading-tight text-[var(--navy-deep)] sm:text-4xl">
               {reception.date}
             </p>
-            <p className="font-display text-xl text-[var(--gold-deep)] sm:text-2xl">
+            <p className="mt-1.5 font-display text-xl tracking-wide text-[var(--gold-deep)] sm:text-2xl">
               {reception.time}
             </p>
-            <p className="mt-2 font-display text-lg italic leading-snug text-[var(--navy-muted)] sm:text-xl">
-              {reception.venue}, {reception.address}
+            <p className="mt-5 max-w-[22rem] font-display text-lg italic leading-relaxed text-[var(--navy-muted)] sm:text-xl">
+              {reception.venue},<br />
+              {reception.address}
             </p>
           </div>
 

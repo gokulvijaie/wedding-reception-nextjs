@@ -14,13 +14,11 @@ export default function MusicToggle() {
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    const audio = new Audio("/assets/music.mp3");
-    audio.loop = true;
+    // Use the in-DOM <audio> element (rendered below) rather than `new Audio()`
+    // — several Android Chrome versions only play reliably from a real element.
+    const audio = audioRef.current;
+    if (!audio) return;
     audio.volume = 0.35;
-    audio.preload = "auto";
-    // Helps mobile browsers keep audio playing when the screen is scrolled/idle.
-    audio.setAttribute("playsinline", "");
-    audioRef.current = audio;
 
     // Keep the button icon in sync even if playback stops for any reason.
     const onPlay = () => setPlaying(true);
@@ -83,6 +81,8 @@ export default function MusicToggle() {
       title={playing ? "Mute music" : "Play music"}
       className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--gold)] bg-[var(--ivory-soft)]/90 text-[var(--navy)] shadow-lg backdrop-blur transition hover:scale-105"
     >
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio ref={audioRef} src="/assets/music.mp3" loop preload="auto" playsInline />
       {/* soft pulse ring while playing */}
       {playing && (
         <span

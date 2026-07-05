@@ -53,13 +53,13 @@ export default function Hero() {
 
         {/* Heart · eyebrow · heart */}
         <div className="mt-6 ornament reveal" style={{ animationDelay: "0.6s" }}>
-          &#10084;
+          &#10084;&#65038;
         </div>
         <p className="mt-3 eyebrow reveal" style={{ animationDelay: "0.7s" }}>
           {hero.eyebrow}
         </p>
         <div className="mt-3 ornament reveal" style={{ animationDelay: "0.8s" }}>
-          &#10084;
+          &#10084;&#65038;
         </div>
 
         {/* Scratch-to-reveal card */}
