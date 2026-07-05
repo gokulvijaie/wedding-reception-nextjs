@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { config } from "@/lib/config";
 import Monogram from "./Monogram";
 
@@ -22,6 +22,18 @@ export default function Story() {
   const [dragging, setDragging] = useState(false);
   const startX = useRef<number | null>(null);
   const moment = story.moments[active];
+
+  // Preload every slide image once so swiping is instant on mobile (no
+  // per-slide fetch delay). There are only a handful and they are small.
+  useEffect(() => {
+    story.moments.forEach((m) => {
+      if (m.image) {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = m.image;
+      }
+    });
+  }, [story.moments]);
 
   const go = (n: number, d: 1 | -1) => {
     setDir(d);
@@ -102,6 +114,7 @@ export default function Story() {
                         src={moment.image}
                         alt={moment.caption}
                         draggable={false}
+                        decoding="async"
                         className="h-full w-full object-cover"
                       />
                     ) : (

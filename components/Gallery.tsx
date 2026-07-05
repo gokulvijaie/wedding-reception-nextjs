@@ -75,18 +75,26 @@ export default function Gallery() {
           </p>
         </header>
 
-        {/* Featured highlight film — click to play, with sound + controls */}
+        {/* Featured highlight film — muted autoplay loop, download disabled */}
         {engagement.film && (
           <figure className="mb-12 on-scroll">
             <div className="overflow-hidden rounded-2xl border border-[var(--gold)]/40 shadow-[0_18px_50px_-24px_rgba(26,44,91,0.6)]">
               <video
+                ref={(el) => {
+                  if (el) el.muted = true;
+                }}
                 src={engagement.film.src}
                 poster={engagement.film.poster}
                 className="block h-auto w-full bg-black"
-                controls
+                autoPlay
                 muted
+                loop
                 playsInline
-                preload="none"
+                controls
+                controlsList="nodownload noplaybackrate"
+                disablePictureInPicture
+                onContextMenu={(e) => e.preventDefault()}
+                preload="metadata"
               />
             </div>
             <figcaption className="mt-3 text-center font-script text-2xl text-[var(--gold-deep)]">

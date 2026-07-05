@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
  */
 export default function MusicToggle() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const startedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
@@ -17,26 +18,46 @@ export default function MusicToggle() {
     audio.loop = true;
     audio.volume = 0.35;
     audio.preload = "auto";
+    // Helps mobile browsers keep audio playing when the screen is scrolled/idle.
+    audio.setAttribute("playsinline", "");
     audioRef.current = audio;
 
+    // Keep the button icon in sync even if playback stops for any reason.
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("pause", onPause);
+
     const start = () => {
-      audio
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      audio.play().catch(() => {
+        /* still blocked — the corner button remains as the manual fallback */
+      });
     };
 
-    // Try immediately, then fall back to the first user gesture.
+    // Try immediately (desktop), then start on the first real user gesture.
+    // Android Chrome / iOS only allow audio from inside a gesture handler, so
+    // call play() directly and cover taps, touches and scrolls.
     start();
     const onFirstInteract = () => {
-      if (!playing) start();
-      window.removeEventListener("pointerdown", onFirstInteract);
+      if (startedRef.current) return;
+      startedRef.current = true;
+      start();
+      remove();
     };
-    window.addEventListener("pointerdown", onFirstInteract, { once: true });
+    const remove = () => {
+      window.removeEventListener("pointerdown", onFirstInteract);
+      window.removeEventListener("touchstart", onFirstInteract);
+      window.removeEventListener("click", onFirstInteract);
+    };
+    window.addEventListener("pointerdown", onFirstInteract);
+    window.addEventListener("touchstart", onFirstInteract, { passive: true });
+    window.addEventListener("click", onFirstInteract);
 
     return () => {
       audio.pause();
-      window.removeEventListener("pointerdown", onFirstInteract);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("pause", onPause);
+      remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
