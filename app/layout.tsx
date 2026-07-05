@@ -37,7 +37,7 @@ const description = `Join us as we celebrate the wedding reception of ${config.c
 
 // Absolute base URL is required so WhatsApp / Messenger can fetch the preview
 // image. Set NEXT_PUBLIC_SITE_URL to your real domain before going live.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokul-invitation.example";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokulamrithawedding.in/";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

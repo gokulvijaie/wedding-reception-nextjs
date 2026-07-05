@@ -48,6 +48,7 @@ export const config = {
       parents: ["Vijayan Thareparambil", "Sheena M D"],
       siblings: ["Rahul Vijayan"],
       siblingRelation: "Brother of",
+      address: ["Thareparambil House", "Kuzhur, Mala", "Thrissur"],
     },
     bride: {
       name: "Amritha",
@@ -55,6 +56,7 @@ export const config = {
       parents: ["Baby Chiyadi", "Nisha Baby"],
       siblings: ["Arjun Baby"],
       siblingRelation: "Sister of",
+      address: ["Chiyadi House", "Maradu", "Ernakulam"],
     },
   },
 

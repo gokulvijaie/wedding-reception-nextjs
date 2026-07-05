@@ -26,30 +26,33 @@ export default function MusicToggle() {
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
 
-    const start = () => {
-      audio.play().catch(() => {
-        /* still blocked — the corner button remains as the manual fallback */
-      });
-    };
+    // Try immediately (works on desktop where autoplay is permitted).
+    audio.play().catch(() => {});
 
-    // Try immediately (desktop), then start on the first real user gesture.
-    // Android Chrome / iOS only allow audio from inside a gesture handler, so
-    // call play() directly and cover taps, touches and scrolls.
-    start();
-    const onFirstInteract = () => {
+    // Mobile: retry on EVERY user gesture until play() actually resolves, then
+    // stop listening. Android Chrome frequently rejects the first attempt (the
+    // first touch is often a scroll, or the file isn't buffered yet); the old
+    // code gave up after one try, leaving Android silent while iOS — which
+    // happened to succeed first try — worked. `touchend`/`click` are the most
+    // reliable "definite tap" gestures for unlocking audio.
+    const events = ["pointerup", "touchend", "click", "keydown"] as const;
+    const remove = () =>
+      events.forEach((e) => document.removeEventListener(e, onGesture));
+    const onGesture = () => {
       if (startedRef.current) return;
-      startedRef.current = true;
-      start();
-      remove();
+      audio
+        .play()
+        .then(() => {
+          startedRef.current = true;
+          remove();
+        })
+        .catch(() => {
+          /* not yet — keep listening, next gesture will retry */
+        });
     };
-    const remove = () => {
-      window.removeEventListener("pointerdown", onFirstInteract);
-      window.removeEventListener("touchstart", onFirstInteract);
-      window.removeEventListener("click", onFirstInteract);
-    };
-    window.addEventListener("pointerdown", onFirstInteract);
-    window.addEventListener("touchstart", onFirstInteract, { passive: true });
-    window.addEventListener("click", onFirstInteract);
+    events.forEach((e) =>
+      document.addEventListener(e, onGesture, { passive: true })
+    );
 
     return () => {
       audio.pause();
