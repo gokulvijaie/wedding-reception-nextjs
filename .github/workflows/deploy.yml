@@ -1,0 +1,27 @@
+name: Deploy to AWS Lightsail
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Lightsail
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            cd /var/www/wedding-site
+            git pull origin main
+            npm install
+            npm run build
+            pm2 restart wedding-site || pm2 start "npm run start" --name wedding-site
+            pm2 save
+            sudo systemctl restart nginx
+
