@@ -20,45 +20,64 @@ export default function MusicToggle() {
     if (!audio) return;
     audio.volume = 0.35;
 
-    // Keep the button icon in sync even if playback stops for any reason.
-    const onPlay = () => setPlaying(true);
-    const onPause = () => setPlaying(false);
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
+    // ── platform detection ────────────────────────────────────────────────
+    const ua = navigator.userAgent || "";
+    const isIOS =
+      /iP(hone|ad|od)/.test(ua) ||
+      // iPadOS 13+ reports as "Macintosh" but is a touch device
+      (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(ua);
 
-    // Try immediately (works on desktop where autoplay is permitted).
-    audio.play().catch(() => {});
+    // "playing" means AUDIBLE (not paused and not muted). volumechange fires on
+    // mute/unmute, so this stays correct through the Android muted-autoplay path.
+    const sync = () => setPlaying(!audio.paused && !audio.muted);
+    audio.addEventListener("play", sync);
+    audio.addEventListener("pause", sync);
+    audio.addEventListener("volumechange", sync);
 
-    // Mobile: retry on EVERY user gesture until play() actually resolves, then
-    // stop listening. Android Chrome frequently rejects the first attempt (the
-    // first touch is often a scroll, or the file isn't buffered yet); the old
-    // code gave up after one try, leaving Android silent while iOS — which
-    // happened to succeed first try — worked. `touchend`/`click` are the most
-    // reliable "definite tap" gestures for unlocking audio.
+    // ── platform-specific startup ─────────────────────────────────────────
+    let androidWarmup: number | undefined;
+    if (isAndroid) {
+      // Android Chrome ALLOWS muted autoplay. Start the track muted so the first
+      // tap only needs to unmute → instant sound. Delay it a couple of seconds
+      // so the 3.3 MB file doesn't compete with the visible images for
+      // bandwidth on the initial page load.
+      audio.muted = true;
+      androidWarmup = window.setTimeout(() => audio.play().catch(() => {}), 2500);
+    } else if (!isIOS) {
+      // Desktop: real autoplay is usually permitted.
+      audio.muted = false;
+      audio.play().catch(() => {});
+    }
+    // iOS Safari blocks ALL <audio> autoplay (even muted) — do nothing on load;
+    // playback can only begin from inside the gesture handler below.
+
+    // ── first-gesture unlock (iOS + fallback for the rest) ────────────────
+    // Unmute + play, retrying on EVERY gesture until it actually starts. Android
+    // resolves instantly (already playing, just unmuting); iOS starts fresh.
     const events = ["pointerup", "touchend", "click", "keydown"] as const;
-    const remove = () =>
-      events.forEach((e) => document.removeEventListener(e, onGesture));
-    const onGesture = () => {
+    const unlock = () => {
       if (startedRef.current) return;
+      audio.muted = false;
       audio
         .play()
         .then(() => {
           startedRef.current = true;
-          remove();
+          events.forEach((e) => document.removeEventListener(e, unlock));
         })
         .catch(() => {
-          /* not yet — keep listening, next gesture will retry */
+          /* not yet — keep listening, the next gesture retries */
         });
     };
-    events.forEach((e) =>
-      document.addEventListener(e, onGesture, { passive: true })
-    );
+    events.forEach((e) => document.addEventListener(e, unlock, { passive: true }));
 
     return () => {
+      if (androidWarmup) window.clearTimeout(androidWarmup);
       audio.pause();
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-      remove();
+      audio.removeEventListener("play", sync);
+      audio.removeEventListener("pause", sync);
+      audio.removeEventListener("volumechange", sync);
+      events.forEach((e) => document.removeEventListener(e, unlock));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -66,14 +85,11 @@ export default function MusicToggle() {
   const toggle = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (playing) {
-      audio.pause();
-      setPlaying(false);
+    if (!audio.paused && !audio.muted) {
+      audio.pause(); // audible → stop
     } else {
-      audio
-        .play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      audio.muted = false;
+      audio.play().catch(() => {});
     }
   };
 
@@ -85,7 +101,7 @@ export default function MusicToggle() {
       className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--gold)] bg-[var(--ivory-soft)]/90 text-[var(--navy)] shadow-lg backdrop-blur transition hover:scale-105"
     >
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-      <audio ref={audioRef} src="/assets/music.mp3" loop preload="auto" playsInline />
+      <audio ref={audioRef} src="/assets/music.mp3" loop preload="none" playsInline />
       {/* soft pulse ring while playing */}
       {playing && (
         <span

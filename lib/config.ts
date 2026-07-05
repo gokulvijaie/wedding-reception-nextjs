@@ -118,11 +118,11 @@ export const config = {
     // set `image` to null to show an elegant monogram placeholder instead.
     photos: [
       { image: "/assets/engagement/01.webp" as string | null, caption: "A day to remember" },
-      { image: "/assets/engagement/02.webp" as string | null, caption: "Surrounded by love" },
-      { image: "/assets/engagement/03.webp" as string | null, caption: "Hearts full of joy" },
-      { image: "/assets/engagement/04.webp" as string | null, caption: "With our families" },
-      { image: "/assets/engagement/07.webp" as string | null, caption: "Moments to treasure" },
-      { image: "/assets/engagement/08.webp" as string | null, caption: "Forever begins" },
+      { image: "/assets/engagement/02.webp" as string | null, caption: "Wedding Ring Exchange" },
+      { image: "/assets/engagement/03.webp" as string | null, caption: "With our families" },
+      { image: "/assets/engagement/04.webp" as string | null, caption: "Hearts full of joy" },
+      { image: "/assets/engagement/07.webp" as string | null, caption: "Blessed by the best" },
+      { image: "/assets/engagement/08.webp" as string | null, caption: "With the queen of our family" },
     ],
   },
 
