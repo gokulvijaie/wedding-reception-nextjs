@@ -45,7 +45,7 @@ export const config = {
     groom: {
       name: "Gokul",
       role: "Son of",
-      parents: ["Vijayan Thareparambil", "Sheena M D"],
+      parents: ["Vijayan Thareparambil", "Sheena Vijayan"],
       siblings: ["Rahul Vijayan"],
       siblingRelation: "Brother of",
       address: ["Thareparambil House", "Kuzhur, Mala", "Thrissur"],
