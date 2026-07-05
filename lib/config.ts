@@ -12,7 +12,7 @@ export const config = {
   },
 
   // ISO date-time of the celebration (used by the countdown + schema).
-  weddingDateISO: "2026-08-31T16:30:00+05:30",
+  weddingDateISO: "2026-08-30T05:00:00+05:30",
 
   hero: {
     eyebrow: "WE ARE GETTING MARRIED",
@@ -27,15 +27,15 @@ export const config = {
   scratch: {
     eyebrow: "WE ARE GETTING MARRIED",
     hint: "SCRATCH TO REVEAL",
-    hintSub: "our special day",
-    revealLabel: "OUR SPECIAL DAY",
-    thankYou: "Thank you for being a part of our special day.",
+    hintSub: "our Wedding Reception",
+    revealLabel: "WEDDING RECEPTION",
+    thankYou: "Thank you for being a part of our wedding reception.",
   },
 
   countdown: {
     eyebrow: "THE COUNTDOWN BEGINS",
-    title: "Until our forever begins",
-    subtitle: "Every journey led us here",
+    title: "Until our wedding ceremony",
+    subtitle: "30th August 2026, 5:00 AM Guruvayur Temple",
   },
 
   families: {
@@ -132,13 +132,13 @@ export const config = {
         time: "4:30 PM",
         title: "Reception",
         subtitle: "Welcome & blessings",
-        place: "St. Stanislaus Parish Hall,First Floor",
+        place: "St. Stanislaus Parish Hall, First Floor",
       },
       {
         time: "5:00 PM",
         title: "Dinner",
         subtitle: "Celebration & feast",
-        place: "St. Stanislaus Parish Hall,Ground Floor ",
+        place: "St. Stanislaus Parish Hall, Ground Floor",
       },
     ],
   },
@@ -152,6 +152,8 @@ export const config = {
     venue: "St. Stanislaus Parish Hall",
     address: "Mala Town, Kerala",
     note: "Celebrate this new chapter with us.",
+    ceremonyNote:
+      "The wedding ceremony takes place on 30th August amidst close family. We'd be honoured to have you celebrate with us at the reception.",
     mapUrl: "https://maps.app.goo.gl/YiehE8HDWjAeuMhm8",
     // Self-hosted satellite map (Esri World Imagery + place labels via Leaflet)
     // pinned to the venue's exact coordinates (10.2431116, 76.2645739). Keyless
