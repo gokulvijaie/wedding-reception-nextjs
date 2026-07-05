@@ -35,25 +35,32 @@ const title = `${config.couple.groom} weds ${config.couple.bride}`;
 const fullTitle = `${title} · Wedding Reception Invitation`;
 const description = `Join us as we celebrate the wedding reception of ${config.couple.groom} & ${config.couple.bride} — ${config.hero.dateLabel}, ${config.hero.location}. ${config.hero.tagline}`;
 
-// Absolute base URL is required so WhatsApp / Messenger can fetch the preview
-// image. Set NEXT_PUBLIC_SITE_URL to your real domain before going live.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokulamrithawedding.in/";
+// Absolute URLs are required so WhatsApp / Messenger can fetch the preview.
+// Keep NEXT_PUBLIC_SITE_URL set to the public production domain when deploying.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokulamrithawedding.in";
+const metadataBase = new URL(siteUrl);
+const canonicalUrl = new URL("/", metadataBase).toString();
+const ogImageUrl = new URL("/og-image.jpg?v=2", metadataBase).toString();
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase,
   title: fullTitle,
   description,
   applicationName: title,
+  alternates: {
+    canonical: canonicalUrl,
+  },
   openGraph: {
     type: "website",
-    url: "/",
+    url: canonicalUrl,
     siteName: title,
     title: fullTitle,
     description,
     locale: "en_IN",
     images: [
       {
-        url: "/og-image.jpg", // resolved to an absolute URL via metadataBase
+        url: ogImageUrl,
+        secureUrl: ogImageUrl,
         width: 1200,
         height: 630,
         alt: `${config.couple.groom} & ${config.couple.bride} — Wedding Reception`,
@@ -65,7 +72,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: fullTitle,
     description,
-    images: ["/og-image.jpg"],
+    images: [ogImageUrl],
   },
   robots: { index: true, follow: true },
 };

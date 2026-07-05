@@ -11,39 +11,76 @@ const FRAMES = [
   "linear-gradient(160deg, #3a4a73 0%, #26396b 60%, #18254a 100%)",
 ];
 
-const SWIPE_THRESHOLD = 60; // px of horizontal drag needed to change slide
+const SWIPE_THRESHOLD = 60; // px of horizontal drag needed to commit a swipe
+const FLY_MS = 460; // how long the top card flies before the stack advances
+
+// Springy rise for the card coming forward (slight overshoot = natural spring).
+const SPRING = "cubic-bezier(0.34, 1.56, 0.64, 1)";
+// Ease-out for the rejected card flying away.
+const FLY = "cubic-bezier(0.3, 0.55, 0.4, 1)";
+
+type Moment = (typeof config.story.moments)[number];
+
+function CardFigure({ moment, frame }: { moment: Moment; frame: string }) {
+  return (
+    <figure className="relative rotate-[-2deg] rounded-sm bg-white p-3 pb-12 shadow-[0_18px_50px_-12px_rgba(26,44,91,0.45)]">
+      <div
+        className="relative flex aspect-[4/5] items-center justify-center overflow-hidden"
+        style={{ background: moment.image ? undefined : frame }}
+      >
+        {moment.image ? (
+          <img
+            src={moment.image}
+            alt={moment.caption}
+            draggable={false}
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <Monogram tone="ivory" className="w-1/2 opacity-80" />
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+      </div>
+      <figcaption className="absolute inset-x-0 bottom-3 text-center font-script text-xl text-[var(--navy)]">
+        {moment.caption}
+      </figcaption>
+    </figure>
+  );
+}
 
 export default function Story() {
   const { story } = config;
   const total = story.moments.length;
   const [active, setActive] = useState(0);
-  const [dir, setDir] = useState<1 | -1>(1);
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
+  const [leaving, setLeaving] = useState<{ dir: 1 | -1 } | null>(null);
   const startX = useRef<number | null>(null);
+  const leaveTimer = useRef<number | undefined>(undefined);
   const moment = story.moments[active];
 
-  // Preload every slide image once so swiping is instant on mobile (no
-  // per-slide fetch delay). There are only a handful and they are small.
-  useEffect(() => {
-    story.moments.forEach((m) => {
-      if (m.image) {
-        const img = new Image();
-        img.decoding = "async";
-        img.src = m.image;
-      }
-    });
-  }, [story.moments]);
+  useEffect(() => () => window.clearTimeout(leaveTimer.current), []);
 
-  const go = (n: number, d: 1 | -1) => {
-    setDir(d);
-    setActive((n + total) % total);
+  /**
+   * Fly the top card off in `dir`, then advance the stack. The card behind
+   * rises into the main position via its transform transition.
+   */
+  const commit = (target: number, dir: 1 | -1) => {
+    if (leaving) return;
+    setDragging(false);
+    setDragX(0);
+    setLeaving({ dir });
+    leaveTimer.current = window.setTimeout(() => {
+      setActive(((target % total) + total) % total);
+      setLeaving(null);
+    }, FLY_MS);
   };
-  const next = () => go(active + 1, 1);
-  const prev = () => go(active - 1, -1);
+  const next = () => commit(active + 1, -1); // reject to the left
+  const prev = () => commit(active - 1, 1); // toss back to the right
 
   /* ── swipe handling (pointer events cover touch + mouse) ─────────────── */
   const onPointerDown = (e: React.PointerEvent) => {
+    if (leaving) return;
     startX.current = e.clientX;
     setDragging(true);
     try {
@@ -59,11 +96,16 @@ export default function Story() {
   const endDrag = () => {
     if (!dragging) return;
     const dx = dragX;
-    setDragging(false);
-    setDragX(0);
     startX.current = null;
-    if (dx <= -SWIPE_THRESHOLD) next();
-    else if (dx >= SWIPE_THRESHOLD) prev();
+    if (dx <= -SWIPE_THRESHOLD) {
+      commit(active + 1, -1);
+    } else if (dx >= SWIPE_THRESHOLD) {
+      commit(active - 1, 1);
+    } else {
+      // below threshold → spring back to centre
+      setDragging(false);
+      setDragX(0);
+    }
   };
 
   return (
@@ -83,50 +125,71 @@ export default function Story() {
         </header>
 
         <div className="grid items-center gap-10 md:grid-cols-2">
-          {/* Polaroid frame — draggable */}
+          {/* Polaroid card stack — swipe the top card away */}
           <div className="on-scroll flex justify-center">
             <div
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={endDrag}
               onPointerCancel={endDrag}
-              className="w-[78%] max-w-xs cursor-grab select-none active:cursor-grabbing"
-              style={{
-                touchAction: "pan-y",
-                transform: `translateX(${dragX}px) rotate(${dragX * 0.045}deg)`,
-                transition: dragging ? "none" : "transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)",
-              }}
+              className="relative w-[78%] max-w-xs cursor-grab select-none active:cursor-grabbing"
+              style={{ touchAction: "pan-y" }}
             >
-              {/* keyed layer re-mounts on slide change → entry animation */}
-              <div
-                key={active}
-                style={{
-                  animation: `${dir === 1 ? "storyInRight" : "storyInLeft"} 0.65s cubic-bezier(0.16, 1, 0.3, 1) both`,
-                }}
-              >
-                <figure className="relative rotate-[-2deg] rounded-sm bg-white p-3 pb-12 shadow-[0_18px_50px_-12px_rgba(26,44,91,0.45)]">
-                  <div
-                    className="relative flex aspect-[4/5] items-center justify-center overflow-hidden"
-                    style={{ background: moment.image ? undefined : FRAMES[active % FRAMES.length] }}
-                  >
-                    {moment.image ? (
-                      <img
-                        src={moment.image}
-                        alt={moment.caption}
-                        draggable={false}
-                        decoding="async"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Monogram tone="ivory" className="w-1/2 opacity-80" />
-                    )}
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  </div>
-                  <figcaption className="absolute inset-x-0 bottom-3 text-center font-script text-xl text-[var(--navy)]">
-                    {moment.caption}
-                  </figcaption>
-                </figure>
+              {/* invisible spacer gives the absolute stack its height */}
+              <div className="invisible" aria-hidden>
+                <CardFigure moment={story.moments[0]} frame={FRAMES[0]} />
               </div>
+
+              {story.moments.map((m, i) => {
+                const depth = (i - active + total) % total;
+                const isTop = depth === 0;
+                const maxDepth = total - 1;
+
+                let transform: string;
+                let transition: string;
+                let opacity = 1;
+
+                if (isTop) {
+                  if (leaving) {
+                    // reject: fly off with a natural tilt, fading late
+                    transform = `translateX(${leaving.dir * 560}px) rotate(${leaving.dir * 28}deg)`;
+                    transition = `transform ${FLY_MS + 90}ms ${FLY}, opacity 0.38s ease 0.12s`;
+                    opacity = 0;
+                  } else if (dragging) {
+                    // follow the finger, tilting with the drag
+                    transform = `translateX(${dragX}px) rotate(${dragX * 0.06}deg)`;
+                    transition = "none";
+                  } else {
+                    // spring back to centre (also the landing state after rising)
+                    transform = "translateX(0px) rotate(0deg)";
+                    transition = `transform 0.55s ${SPRING}`;
+                  }
+                } else {
+                  // stacked behind: nudged down, slightly smaller, scattered tilt
+                  transform = `translateY(${depth * 13}px) scale(${1 - depth * 0.05}) rotate(${i % 2 ? 2.4 : -2.4}deg)`;
+                  opacity = depth <= 2 ? 1 : 0;
+                  transition =
+                    depth === maxDepth
+                      ? "none" // teleport invisibly to the back of the stack
+                      : `transform 0.55s ${SPRING}, opacity 0.35s ease`;
+                }
+
+                return (
+                  <div
+                    key={i}
+                    className="absolute inset-x-0 top-0"
+                    style={{
+                      zIndex: isTop ? 40 : 30 - depth,
+                      transform,
+                      transition,
+                      opacity,
+                      willChange: "transform",
+                    }}
+                  >
+                    <CardFigure moment={m} frame={FRAMES[i % FRAMES.length]} />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -160,7 +223,7 @@ export default function Story() {
                 {story.moments.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => go(i, i > active ? 1 : -1)}
+                    onClick={() => i !== active && commit(i, i > active ? -1 : 1)}
                     aria-label={`Go to moment ${i + 1}`}
                     className={`h-2 rounded-full transition-all duration-300 ${
                       i === active ? "w-6 bg-[var(--gold)]" : "w-2 bg-[var(--border)]"
