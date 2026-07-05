@@ -39,7 +39,7 @@ family, schedule, story copy and map links.
 
 ## Notes
 
-The decorative background artwork and the S\|L monogram are reused to match the
+The decorative background artwork and the G|A monogram are reused to match the
 reference theme. The original couple's personal storyboard photographs are **not**
 included — replace the placeholders with your own images as described above.
 
