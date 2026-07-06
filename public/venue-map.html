@@ -30,9 +30,11 @@
       { maxZoom: 19 }
     ).addTo(map);
 
+    // Pin only — the venue name is shown above the map in the card, so the
+    // popup is bound (tap the pin to see it) but not auto-opened, which kept
+    // covering the zoom controls and getting clipped on the small map.
     L.marker([lat, lng]).addTo(map)
-      .bindPopup('St. Stanislaus Parish Hall, Mala Town')
-      .openPopup();
+      .bindPopup('St. Stanislaus Parish Hall, Mala Town', { maxWidth: 200 });
   </script>
 </body>
 </html>
