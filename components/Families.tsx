@@ -18,8 +18,13 @@ function FamilyCard({
       <p className="mt-3 font-caps text-[0.65rem] tracking-[0.3em] text-[var(--gold-deep)]">
         {side.role.toUpperCase()}
       </p>
-      <p className="mt-1 font-display text-xl text-[var(--navy-deep)]">
-        {side.parents.join("  &  ")}
+      <p className="mt-1 text-balance font-display text-xl text-[var(--navy-deep)]">
+        {side.parents.map((p, i) => (
+          <span key={i}>
+            {i > 0 && <span className="text-[var(--gold)]"> &amp; </span>}
+            <span className="whitespace-nowrap">{p}</span>
+          </span>
+        ))}
       </p>
 
       <div className="mx-auto my-5 flex w-2/3 items-center gap-2">

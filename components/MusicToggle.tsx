@@ -3,59 +3,89 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Floating background-music control, styled after the reference site: a gold
- * circular button fixed in the corner that toggles a looping track. Autoplay is
- * attempted on load and again on the first interaction (browsers block
- * unprompted audio). Drop a licensed track at /public/assets/music.mp3.
+ * Floating background-music control with platform-specific startup:
+ *
+ *  ┌─────────┬────────────────────────────────────────────────────────────┐
+ *  │ iOS     │ Safari blocks ALL audio autoplay (even muted). Playback    │
+ *  │         │ can only begin inside a user-gesture handler, so we do     │
+ *  │         │ nothing on load and start on the first tap.                │
+ *  ├─────────┼────────────────────────────────────────────────────────────┤
+ *  │ Android │ Chrome ALLOWS muted autoplay. We start the track muted in  │
+ *  │         │ the background, so the first tap only has to unmute —      │
+ *  │         │ music is instant instead of starting from a cold buffer.   │
+ *  ├─────────┼────────────────────────────────────────────────────────────┤
+ *  │ Desktop │ Audible autoplay is usually permitted — play immediately,  │
+ *  │         │ with the gesture unlock as fallback if the browser blocks. │
+ *  └─────────┴────────────────────────────────────────────────────────────┘
+ *
+ * All paths share one gesture "unlock" that retries on every tap until
+ * play() actually resolves (a single failed attempt must never give up).
  */
+type Platform = "ios" | "android" | "desktop";
+
+function detectPlatform(): Platform {
+  const ua = navigator.userAgent || "";
+  const isIOS =
+    /iP(hone|ad|od)/.test(ua) ||
+    // iPadOS 13+ masquerades as "Macintosh" but is a touch device
+    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (isIOS) return "ios";
+  if (/Android/.test(ua)) return "android";
+  return "desktop";
+}
+
 export default function MusicToggle() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    // Use the in-DOM <audio> element (rendered below) rather than `new Audio()`
-    // — several Android Chrome versions only play reliably from a real element.
+    // In-DOM <audio> element (rendered below) rather than `new Audio()` —
+    // several Android Chrome versions only play reliably from a real element.
     const audio = audioRef.current;
     if (!audio) return;
     audio.volume = 0.35;
 
-    // ── platform detection ────────────────────────────────────────────────
-    const ua = navigator.userAgent || "";
-    const isIOS =
-      /iP(hone|ad|od)/.test(ua) ||
-      // iPadOS 13+ reports as "Macintosh" but is a touch device
-      (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-    const isAndroid = /Android/.test(ua);
-
-    // "playing" means AUDIBLE (not paused and not muted). volumechange fires on
-    // mute/unmute, so this stays correct through the Android muted-autoplay path.
+    // "playing" means AUDIBLE (not paused and not muted). volumechange fires
+    // on mute/unmute so the icon stays correct on the Android muted path.
     const sync = () => setPlaying(!audio.paused && !audio.muted);
     audio.addEventListener("play", sync);
     audio.addEventListener("pause", sync);
     audio.addEventListener("volumechange", sync);
 
-    // ── platform-specific startup ─────────────────────────────────────────
-    let androidWarmup: number | undefined;
-    if (isAndroid) {
-      // Android Chrome ALLOWS muted autoplay. Start the track muted so the first
-      // tap only needs to unmute → instant sound. Delay it a couple of seconds
-      // so the 3.3 MB file doesn't compete with the visible images for
-      // bandwidth on the initial page load.
+    const platform = detectPlatform();
+    let warmupTimer: number | undefined;
+
+    /* ── ANDROID ─────────────────────────────────────────────────────────
+       Start muted (allowed) after a short delay so the 3.3 MB track doesn't
+       compete with images on first load. First tap below just unmutes. */
+    if (platform === "android") {
       audio.muted = true;
-      androidWarmup = window.setTimeout(() => audio.play().catch(() => {}), 2500);
-    } else if (!isIOS) {
-      // Desktop: real autoplay is usually permitted.
+      warmupTimer = window.setTimeout(() => {
+        audio.play().catch(() => {
+          /* if even muted autoplay is blocked, the tap fallback handles it */
+        });
+      }, 2000);
+    }
+
+    /* ── DESKTOP ─────────────────────────────────────────────────────────
+       Try audible autoplay right away. */
+    if (platform === "desktop") {
       audio.muted = false;
       audio.play().catch(() => {});
     }
-    // iOS Safari blocks ALL <audio> autoplay (even muted) — do nothing on load;
-    // playback can only begin from inside the gesture handler below.
 
-    // ── first-gesture unlock (iOS + fallback for the rest) ────────────────
-    // Unmute + play, retrying on EVERY gesture until it actually starts. Android
-    // resolves instantly (already playing, just unmuting); iOS starts fresh.
-    const events = ["pointerup", "touchend", "click", "keydown"] as const;
+    /* ── iOS ─────────────────────────────────────────────────────────────
+       Intentionally nothing on load: WebKit only permits playback started
+       synchronously inside the gesture handler below. */
+
+    /* ── shared first-gesture unlock ─────────────────────────────────────
+       Unmute + play, retrying on EVERY gesture until play() resolves.
+       Android: resolves instantly (already rolling muted) → just unmutes.
+       iOS: starts playback fresh inside the gesture. */
+    const events = ["touchend", "pointerup", "click", "keydown"] as const;
+    const removeAll = () =>
+      events.forEach((e) => document.removeEventListener(e, unlock));
     const unlock = () => {
       if (startedRef.current) return;
       audio.muted = false;
@@ -63,23 +93,22 @@ export default function MusicToggle() {
         .play()
         .then(() => {
           startedRef.current = true;
-          events.forEach((e) => document.removeEventListener(e, unlock));
+          removeAll();
         })
         .catch(() => {
-          /* not yet — keep listening, the next gesture retries */
+          /* not yet — keep listening; the next tap retries */
         });
     };
     events.forEach((e) => document.addEventListener(e, unlock, { passive: true }));
 
     return () => {
-      if (androidWarmup) window.clearTimeout(androidWarmup);
+      if (warmupTimer) window.clearTimeout(warmupTimer);
       audio.pause();
       audio.removeEventListener("play", sync);
       audio.removeEventListener("pause", sync);
       audio.removeEventListener("volumechange", sync);
-      events.forEach((e) => document.removeEventListener(e, unlock));
+      removeAll();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggle = () => {
