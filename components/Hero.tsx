@@ -5,6 +5,7 @@ import { config } from "@/lib/config";
 import Monogram from "./Monogram";
 import ScratchCard from "./ScratchCard";
 import ScriptName from "./ScriptName";
+import ScrollCue from "./ScrollCue";
 
 export default function Hero() {
   const { couple, hero, scratch } = config;
@@ -75,6 +76,10 @@ export default function Hero() {
           {scratch.thankYou}
         </p>
       </div>
+
+      {/* Scroll-for-more cue, fixed to the bottom of the first screen */}
+      <ScrollCue />
     </section>
   );
 }
+
