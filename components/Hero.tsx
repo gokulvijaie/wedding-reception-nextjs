@@ -68,17 +68,19 @@ export default function Hero() {
           <ScratchCard />
         </div>
 
+        {/* Scroll-for-more cue — directly above the thank-you line */}
+        <div className="mt-9 reveal" style={{ animationDelay: "1.05s" }}>
+          <ScrollCue />
+        </div>
+
         {/* Thank you */}
         <p
-          className="mt-8 font-display text-xl italic text-[var(--navy-deep)] reveal sm:text-2xl"
-          style={{ animationDelay: "1.1s" }}
+          className="mt-6 font-display text-xl italic text-[var(--navy-deep)] reveal sm:text-2xl"
+          style={{ animationDelay: "1.2s" }}
         >
           {scratch.thankYou}
         </p>
       </div>
-
-      {/* Scroll-for-more cue, fixed to the bottom of the first screen */}
-      <ScrollCue />
     </section>
   );
 }

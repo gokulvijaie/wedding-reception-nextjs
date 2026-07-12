@@ -19,6 +19,9 @@ export default function ScratchCard() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = wrap.clientWidth;
     const h = wrap.clientHeight;
+    // Card not laid out yet (0 size) — bail; the ResizeObserver will re-fire
+    // and repaint once it has real dimensions (e.g. after fonts load).
+    if (w === 0 || h === 0) return;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = `${w}px`;
@@ -61,12 +64,29 @@ export default function ScratchCard() {
   }, [scratch.hint, scratch.hintSub]);
 
   useEffect(() => {
-    paintOverlay();
-    const onResize = () => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const repaint = () => {
       if (!revealed) paintOverlay();
     };
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+
+    // Paint now, again next frame, and once the web fonts finish loading — the
+    // card's height depends on the revealed (font-rendered) content, so its size
+    // settles after fonts load.
+    repaint();
+    const raf = requestAnimationFrame(repaint);
+    document.fonts?.ready.then(repaint).catch(() => {});
+
+    // Repaint whenever the card actually changes size (the reliable trigger).
+    const ro = new ResizeObserver(repaint);
+    ro.observe(wrap);
+
+    window.addEventListener("resize", repaint);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      window.removeEventListener("resize", repaint);
+    };
   }, [paintOverlay, revealed]);
 
   /* ── full-screen confetti shower on reveal ────────────────────────────── */
