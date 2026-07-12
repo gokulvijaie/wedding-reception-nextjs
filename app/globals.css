@@ -117,6 +117,18 @@ h1, h2, h3, p, a, span, li, figcaption {
   50% { opacity: 1; transform: scale(1.04); }
 }
 
+/* Scroll cue: chevron bobs down, guide line draws down and fades */
+@keyframes cueBob {
+  0% { transform: translateY(-3px); opacity: 0.5; }
+  50% { transform: translateY(3px); opacity: 1; }
+  100% { transform: translateY(-3px); opacity: 0.5; }
+}
+@keyframes cueLine {
+  0% { transform: scaleY(0.2); transform-origin: top; opacity: 0; }
+  40% { opacity: 0.6; }
+  100% { transform: scaleY(1); transform-origin: top; opacity: 0; }
+}
+
 /* floating petals drift down */
 @keyframes drift {
   0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 0; }
