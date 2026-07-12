@@ -117,16 +117,18 @@ h1, h2, h3, p, a, span, li, figcaption {
   50% { opacity: 1; transform: scale(1.04); }
 }
 
-/* Scroll cue: chevron bobs down, guide line draws down and fades */
-@keyframes cueBob {
-  0% { transform: translateY(-3px); opacity: 0.5; }
-  50% { transform: translateY(3px); opacity: 1; }
-  100% { transform: translateY(-3px); opacity: 0.5; }
+/* Scroll cue: a lively downward bounce that draws the eye to "more below" */
+@keyframes cueBounce {
+  0%, 15% { transform: translateY(0); }
+  40% { transform: translateY(9px); }
+  55% { transform: translateY(3px); }
+  70% { transform: translateY(7px); }
+  85%, 100% { transform: translateY(0); }
 }
-@keyframes cueLine {
-  0% { transform: scaleY(0.2); transform-origin: top; opacity: 0; }
-  40% { opacity: 0.6; }
-  100% { transform: scaleY(1); transform-origin: top; opacity: 0; }
+/* Soft glow pulse behind the arrow for extra visibility */
+@keyframes cueGlow {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 0.7; transform: scale(1.15); }
 }
 
 /* floating petals drift down */
