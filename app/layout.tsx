@@ -40,7 +40,10 @@ const description = `Join us as we celebrate the wedding reception of ${config.c
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://gokulamrithawedding.in";
 const metadataBase = new URL(siteUrl);
 const canonicalUrl = new URL("/", metadataBase).toString();
-const ogImageUrl = new URL("/og-image.jpg?v=2", metadataBase).toString();
+// Clean URL with NO query string — WhatsApp's link crawler frequently fails to
+// fetch og:image URLs that carry a `?query`, and a fresh path also sidesteps its
+// aggressive per-URL preview cache.
+const ogImageUrl = new URL("/og.jpg", metadataBase).toString();
 
 export const metadata: Metadata = {
   metadataBase,
